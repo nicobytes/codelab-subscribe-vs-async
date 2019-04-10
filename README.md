@@ -1,27 +1,106 @@
+![Imgur](https://i.imgur.com/FdWz6wL.png)
+
 # CodelabSubscribeVsAsync
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.1.4.
+```
+this.tasksService.getTasks()
+.subscribe(tasks => {
+  this.tasks = tasks;
+});
+```
 
-## Development server
+```
+export class AppComponent implements OnInit {
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+  title = 'codelab-subscribe-vs-async';
+  tasks: Task[] = [];
 
-## Code scaffolding
+  constructor(
+    private tasksService: TasksService
+  ) {}
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+  ngOnInit() {
+    this.tasksService.getTasks()
+    .subscribe(tasks => {
+      this.tasks = tasks;
+    });
+  }
+}
+```
 
-## Build
+```
+private unsubscribe$ = new Subject<void>();
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+ngOnInit() {
+  this.tasksService.getTasks()
+  .pipe(
+    takeUntil(this.unsubscribe$)
+  )
+  .subscribe(tasks => {
+    this.tasks = tasks;
+  });
+}
 
-## Running unit tests
+ngOnDestroy(): void {
+  this.unsubscribe$.next();
+  this.unsubscribe$.complete();
+}
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```
+ngOnInit() {
+  this.tasksService.getTasks()
+  .pipe(
+    takeUntil(this.unsubscribe$) // unsubscribe to prevent memory leak
+  )
+  .subscribe(tasks => {
+    this.tasks = tasks; // unwrap observable
+    this.cd.markForCheck(); // trigger change detection
+  });
+}
+```
 
-## Running end-to-end tests
+```
+tasks$: Observable<Task[]>;
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+constructor(
+  private tasksService: TasksService,
+) { }
 
-## Further help
+ngOnInit() {
+  this.tasks$ = this.tasksService.getTasks();
+}
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+```
+<h2>Tasks w/ async pipe: </h2>
+<ul *ngIf="(tasks$ | async).length"> <!-- subscribe -->
+  <li *ngFor="let task of tasks$ | async"> <!-- subscribe -->
+    {{ task.title }}
+  </li>
+</ul>
+```
+
+```
+<h2>Tasks w/ async pipe: </h2>
+<ul *ngIf="(tasks$ | async).length"> <!-- subscribe -->
+  <li *ngFor="let task of tasks$ | async"> <!-- subscribe -->
+    {{ task.title }}
+  </li>
+</ul>
+```
+
+```
+<div *ngIf="tasks$ | async as tasks">  <!-- once subscribe -->
+  <ul *ngIf="tasks.length">
+    <li *ngFor="let task of tasks">
+      {{ task.title }}
+    </li>
+  </ul>
+</div>
+```
+
+```
+<h2>Tasks w/ async pipe: </h2>
+<app-todo-list [tasks]="tasks$ | async"></app-todo-list>
+```
