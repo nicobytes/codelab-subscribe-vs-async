@@ -29,6 +29,15 @@ export class AppComponent implements OnInit {
 ```
 
 ```
+<h2>Tasks w/ subscribe: </h2>
+<ul *ngIf="tasks.length > 0">
+  <li *ngFor="let task of tasks">
+    {{ task.title }}
+  </li>
+</ul>
+```
+
+```
 private unsubscribe$ = new Subject<void>();
 
 ngOnInit() {

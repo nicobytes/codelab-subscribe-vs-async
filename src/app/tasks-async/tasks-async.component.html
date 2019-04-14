@@ -1,1 +1,9 @@
 <h2>Tasks w/ async pipe: </h2>
+<!-- <div *ngIf="tasks$ | async as tasks">
+  <ul *ngIf="tasks.length > 0">
+    <li *ngFor="let task of tasks">
+      {{ task.title }}
+    </li>
+  </ul>
+</div> -->
+<app-todo-list [tasks]="tasks$ | async"></app-todo-list>
